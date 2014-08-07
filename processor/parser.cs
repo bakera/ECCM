@@ -9,6 +9,7 @@ namespace Bakera.Eccm{
 	public class Parser : EcmProcessorBase{
 
 		private Regex myMsReg = new EcmRegex.MemberSelector();
+		private Regex myMetaCharsetReg = new EcmRegex.MetaCharset();
 
 		private ExportManager myExp = null;
 		private int myDepthCounter = 0;//無限ループ検出用
@@ -34,7 +35,7 @@ namespace Bakera.Eccm{
 
 
 		// 与えられた EcmItem を、与えられた FileStream からデータを読み取ってパースし、結果の文字列を返します。
-		public string Parse(EcmItem targetItem, FileStream fs){
+		private string Parse(EcmItem targetItem, FileStream fs){
 
 			string result = null;
 			// パース開始
@@ -51,13 +52,30 @@ namespace Bakera.Eccm{
 
 				if(fs != null){
 					Log.AddInfo("文字符号化方式「{0}」としてデータ読み取りを開始します。", enc.EncodingName);
-					using(StreamReader sr = new StreamReader(fs, Setting.HtmlEncodingObj)){
+					using(StreamReader sr = new StreamReader(fs, Setting.HtmlEncodingObj, true, 128, true)){
 						myReadData = sr.ReadToEnd();
 						sr.Close();
-						sr.Dispose();
 					}
 					Log.AddInfo("データを読み取りました。(データサイズ : {0})", myReadData.Length);
 
+					if(Setting.HtmlEncodingDetectFromMetaCharset){
+						Log.AddInfo("meta charsetによる文字コード自動判別を行います。");
+						Encoding detectedEnc = DetectEncodingFromMetaCharset(myReadData);
+						if(detectedEnc != null){
+							if(detectedEnc.CodePage != enc.CodePage){
+								Log.AddInfo("判別結果は既定の文字コードと異なるため、判別結果に基づいてファイルを開きなおします。");
+								fs.Position = 0;
+								using(StreamReader sr = new StreamReader(fs, detectedEnc)){
+									myReadData = sr.ReadToEnd();
+									sr.Close();
+									sr.Dispose();
+								}
+								Log.AddInfo("データを読み取りました。(データサイズ : {0})", myReadData.Length);
+							} else {
+								Log.AddInfo("判別結果は既定の文字コードと一致していました。");
+							}
+						}
+					}
 					// エクスポートしておく
 					myExp.Parse(myReadData);
 					Log.AddInfo("{0} 編集領域エクスポート完了", targetItem);
@@ -80,7 +98,7 @@ namespace Bakera.Eccm{
 			} catch(ParserException e){
 				Log.AddError("{0} パースエラー: {1}", targetItem, e.Message);
 			} catch(Exception e){
-				Log.AddInfo("{0} の処理中にエラーが発生: {1}", targetItem, e.ToString());
+				Log.AddError("{0} の処理中にエラーが発生: {1}", targetItem, e.ToString());
 			}
 			return result;
 		}
@@ -210,6 +228,27 @@ namespace Bakera.Eccm{
 		}
 
 // private メソッド
+
+
+		//meta charsetから文字符号化方式を判別する
+		private Encoding DetectEncodingFromMetaCharset(string data){
+			Match m = myMetaCharsetReg.Match(data);
+			if(m.Success){
+				Log.AddInfo("meta charsetを検出しました。 {0}", m.Value);
+				string charsetValue = m.Groups[1].Value;
+				try{
+					Encoding result = Encoding.GetEncoding(charsetValue);
+					Log.AddInfo("charset: {1} / Encoding: {0} ", charsetValue, result);
+					return result;
+				} catch(ArgumentException e){
+					Log.AddError("charset: {0} に対応するEncodingが取得できませんでした: {1}", charsetValue, e.Message);
+					return null;
+				}
+			}
+
+			Log.AddInfo("meta charsetを検出できませんでした。");
+			return null;
+		}
 
 		// テンプレート・エクスポート・プロパティをパース
 		private string GeneralParse(string data){

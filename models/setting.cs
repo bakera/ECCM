@@ -31,6 +31,7 @@ namespace Bakera.Eccm{
 		private bool myEnableRegexTemplate = false;
 		private string myCsvEncoding = "Shift_JIS"; // CSV の文字符号化方式
 		private string myHtmlEncoding = "Shift_JIS"; // HTML の文字符号化方式
+		private bool myHtmlEncodingDetectFromMetaCharset = false; // HTML の文字符号化方式
 		private string myColorSeparateRule;
 		private string myParsePermissonRule;
 		private string mySvnUpdateCommand;
@@ -363,6 +364,14 @@ namespace Bakera.Eccm{
 		public string HtmlEncoding{
 			get{ return myHtmlEncoding; }
 			set{ myHtmlEncoding = value; }
+		}
+
+		[EccmEditable("meta charsetからの文字符号化方式判別を有効にする")]
+		[EccmFieldGenre(EccmFieldGenreType.Parser)]
+		[EccmDescription("meta charsetからの文字符号化方式判別", "Publish前のHTMLファイルのmeta charsetを読んで文字符号化方式を自動判別します。trueにすると有効になります。")]
+		public bool HtmlEncodingDetectFromMetaCharset{
+			get{ return myHtmlEncodingDetectFromMetaCharset; }
+			set{ myHtmlEncodingDetectFromMetaCharset = value; }
 		}
 		
 		[EccmEditable]
