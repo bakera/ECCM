@@ -368,7 +368,7 @@ namespace Bakera.Eccm{
 
 		[EccmEditable("meta charsetからの文字符号化方式判別を有効にする")]
 		[EccmFieldGenre(EccmFieldGenreType.Parser)]
-		[EccmDescription("meta charsetからの文字符号化方式判別", "Publish前のHTMLファイルのmeta charsetを読んで文字符号化方式を自動判別します。trueにすると有効になります。")]
+		[EccmDescription("meta charsetからの文字符号化方式判別", "Publish前のHTMLファイルのmeta charsetを読んで文字符号化方式を自動判別します。trueにすると有効になります。この設定が有効の場合、meta charsetの指定がないドキュメントはpublishできなくなります。")]
 		public bool HtmlEncodingDetectFromMetaCharset{
 			get{ return myHtmlEncodingDetectFromMetaCharset; }
 			set{ myHtmlEncodingDetectFromMetaCharset = value; }

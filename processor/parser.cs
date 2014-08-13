@@ -61,7 +61,10 @@ namespace Bakera.Eccm{
 					if(Setting.HtmlEncodingDetectFromMetaCharset){
 						Log.AddInfo("meta charsetによる文字コード自動判別を行います。");
 						Encoding detectedEnc = DetectEncodingFromMetaCharset(myReadData);
-						if(detectedEnc != null){
+						if(detectedEnc == null){
+							Log.AddError("meta charsetを検出できなかったため、処理を中断します。");
+							return null;
+						} else {
 							if(detectedEnc.CodePage != enc.CodePage){
 								Log.AddInfo("判別結果は既定の文字コードと異なるため、判別結果に基づいてファイルを開きなおします。");
 								fs.Position = 0;

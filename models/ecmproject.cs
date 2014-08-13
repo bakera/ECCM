@@ -175,14 +175,28 @@ namespace Bakera.Eccm{
 				this.TableName = xmlFile.FullName;
 				this.ExtendedProperties["LoadTime"] = xmlFile.LastWriteTime;
 
-				XmlDocument xmlSheet = new XmlDocument();
-				xmlSheet.XmlResolver = null;
+				XmlDocument xmlBook = new XmlDocument();
+				xmlBook.XmlResolver = null;
 
 				using(FileStream fs = xmlFile.Open(FileMode.Open, FileAccess.Read, FileShare.Read)){
-					xmlSheet.Load(fs);
+					xmlBook.Load(fs);
 					fs.Close();
 				}
 
+				
+				//最初のシートだけ読む
+				XmlNodeList xmlSheets = xmlBook.GetElementsByTagName("Worksheet");
+				if(xmlSheets.Count <= 0){
+					myMiscErrors.Add("XMLのロードに失敗しました。XMLにWorksheet要素が含まれていません。");
+					return;
+				}
+
+				if(xmlSheets.Count > 1){
+					Log.AddWarning("XMLにWorksheet要素が複数含まれています。最初のWorksheetを使用します。" );
+				}
+
+
+				XmlElement xmlSheet = xmlSheets[0] as XmlElement;
 				XmlNodeList xmlRows = xmlSheet.GetElementsByTagName("Row");
 				bool firstLineFlag = true;
 				for(int i=0; i < xmlRows.Count; i++){
