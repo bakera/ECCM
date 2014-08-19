@@ -35,7 +35,7 @@ namespace Bakera.Eccm{
 
 
 		// 与えられた EcmItem を、与えられた FileStream からデータを読み取ってパースし、結果の文字列を返します。
-		private string Parse(EcmItem targetItem, FileStream fs){
+		private string Parse(EcmItem targetItem, FileInfo targetFile){
 
 			string result = null;
 			// パース開始
@@ -50,13 +50,18 @@ namespace Bakera.Eccm{
 				Encoding enc = Setting.HtmlEncodingObj;
 				myExp = new ExportManager(this, targetItem);
 
-				if(fs != null){
+				if(targetFile != null){
 					Log.AddInfo("文字符号化方式「{0}」としてデータ読み取りを開始します。", enc.EncodingName);
-					using(StreamReader sr = new StreamReader(fs, Setting.HtmlEncodingObj, true, 128, true)){
-						myReadData = sr.ReadToEnd();
-						sr.Close();
+					try{
+						myReadData = LoadFile(targetFile, enc);
+						Log.AddInfo("データを読み取りました。(データサイズ : {0})", myReadData.Length);
+					} catch(IOException e){
+						Log.AddError("ファイル {0} を開けません : {1}", targetItem.FilePath, e.Message);
+						return result;
+					} catch(UnauthorizedAccessException e){
+						Log.AddError("ファイル {0} を開けません : {1}", targetItem.FilePath, e.Message);
+						return result;
 					}
-					Log.AddInfo("データを読み取りました。(データサイズ : {0})", myReadData.Length);
 
 					if(Setting.HtmlEncodingDetectFromMetaCharset){
 						Log.AddInfo("meta charsetによる文字コード自動判別を行います。");
@@ -67,12 +72,7 @@ namespace Bakera.Eccm{
 						} else {
 							if(detectedEnc.CodePage != enc.CodePage){
 								Log.AddInfo("判別結果は既定の文字コードと異なるため、判別結果に基づいてファイルを開きなおします。");
-								fs.Position = 0;
-								using(StreamReader sr = new StreamReader(fs, detectedEnc)){
-									myReadData = sr.ReadToEnd();
-									sr.Close();
-									sr.Dispose();
-								}
+								myReadData = LoadFile(targetFile, detectedEnc);
 								Log.AddInfo("データを読み取りました。(データサイズ : {0})", myReadData.Length);
 							} else {
 								Log.AddInfo("判別結果は既定の文字コードと一致していました。");
@@ -156,24 +156,7 @@ namespace Bakera.Eccm{
 					return result;
 				}
 
-				// 先にファイルを開いてロックしておく
-				// そのまま FileStream を渡してパースする
-				try{
-					using(FileStream fs = targetItem.File.Open(FileMode.Open, FileAccess.Read, FileShare.Read)){
-						Log.AddInfo("ファイル {0} を開きました。(サイズ: {1})", targetItem.FilePath, fs.Length);
-						result.Result = Parse(targetItem, fs);
-						fs.Close();
-						Log.AddInfo("ファイル {0} を閉じました。", targetItem.FilePath);
-					}
-				} catch(IOException e){
-					result.AddError("ファイル {0} を開けません : {1}", targetItem.FilePath, e.Message);
-					Log.AddError("ファイル {0} を開けません : {1}", targetItem.FilePath, e.Message);
-					return result;
-				} catch(UnauthorizedAccessException e){
-					result.AddError("ファイル {0} を開けません : {1}", targetItem.FilePath, e.Message);
-					Log.AddError("ファイル {0} を開けません : {1}", targetItem.FilePath, e.Message);
-					return result;
-				}
+				result.Result = Parse(targetItem, targetItem.File);
 			} else {
 				if(targetItem.Template != null){
 					Log.AddInfo("ファイル {0} はありませんが、グローバルテンプレートが指定されています(テンプレート名 : {1})。", targetItem.FilePath, targetItem.Template);
@@ -232,6 +215,20 @@ namespace Bakera.Eccm{
 
 // private メソッド
 
+		// ファイルからデータを読み込む
+		private static string LoadFile(FileInfo targetFile, Encoding enc){
+			string result = null;
+
+			using(FileStream fs = targetFile.Open(FileMode.Open, FileAccess.Read, FileShare.Read)){
+				using(StreamReader sr = new StreamReader(fs, enc)){
+					result = sr.ReadToEnd();
+					sr.Close();
+				}
+				fs.Close();
+			}
+			return result;
+		}
+
 
 		//meta charsetから文字符号化方式を判別する
 		private Encoding DetectEncodingFromMetaCharset(string data){
@@ -267,7 +264,7 @@ namespace Bakera.Eccm{
 			}
 
 			MarkedData md = MarkedData.Parse(data);
-			if(md ==null) return data;
+			if(md == null) return data;
 
 			// 空要素プロパティは常に削除
 			if(md.EndMark == null) commentDelete = true;
