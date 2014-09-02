@@ -77,6 +77,14 @@ namespace Bakera.Eccm{
 				if(rq.Params[SortReverseInputLabel] != null) myReverse = true;
 				myWhereExpression = rq.Params[WhereInputLabel];
 				string whereStr = whereParse(myWhereExpression);
+
+				if(!String.IsNullOrEmpty(Setting.DisplayRowRule)){
+					if(!String.IsNullOrEmpty(whereStr)){
+						whereStr += " AND ";
+					}
+					whereStr += Setting.DisplayRowRule;
+				}
+
 				EcmItem[] items = null;
 				try{
 					items = myProject.GetAllItems(whereStr, mySortColumn, myReverse);
@@ -159,7 +167,7 @@ namespace Bakera.Eccm{
 		private string whereParse(string s){
 			if(s ==null) return null;
 			string result = "";
-			foreach(string rule in s.Split(' ')){
+			foreach(string rule in s.Split(new char[]{' ', ','})){
 				Match m = whereRuleReg.Match(rule);
 				if(!m.Success) continue;
 				if(m.Groups.Count < 4)  continue;

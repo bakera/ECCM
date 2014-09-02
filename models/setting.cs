@@ -38,6 +38,7 @@ namespace Bakera.Eccm{
 		private string myHandler = "ProjectSetting,AllParse";
 		private string myImageDir;
 		private string myHiddenColumn;
+		private string myDisplayRowRule;
 		private string[] myHiddenColumnList;
 		private string myDefaultSortColumn;
 		private string myDefaultGrobalTemplate;
@@ -438,6 +439,16 @@ namespace Bakera.Eccm{
 			get{ return myHiddenColumn; }
 			set{ myHiddenColumn = value; }
 		}
+
+
+		[EccmEditable]
+		[EccmFieldGenre(EccmFieldGenreType.View)]
+		[EccmDescription("行絞込みルール", "行の絞込みを行うデフォルトのルールを記述します。指定された文字列を生のWHERE句として追加します。たとえば、 NOT [type]='PDF' と指定すると、typeという行が PDF の行が非表示になります。")]
+		public string DisplayRowRule{
+			get{ return myDisplayRowRule; }
+			set{ myDisplayRowRule = value; }
+		}
+
 
 		[EccmEditable]
 		[EccmFieldGenre(EccmFieldGenreType.View)]
