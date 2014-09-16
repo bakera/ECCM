@@ -337,6 +337,8 @@ namespace Bakera.Eccm{
 			if(colonSeparated.Length > 1){
 				string projectId = colonSeparated[0];
 				string itemId = colonSeparated[1];
+				// : の右側が空文字列の場合、自身のIDと同じEcmItemを参照する
+				if(string.IsNullOrEmpty(itemId)) itemId = this.CurrentItem.Id;
 				EcmProject targetProj = this.Manager.GetProject(projectId);
 				if(targetProj != null){
 					return targetProj.GetItem(itemId);
