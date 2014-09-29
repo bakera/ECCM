@@ -173,14 +173,19 @@ namespace Bakera.Eccm{
 				h1.InnerText = "ECCM管理プロジェクト一覧";
 
 				XmlElement table = xhtml.Create("table", "projectlist");
-				XmlElement thead = xhtml.CreateThead("タイトル / ID","作成日");
+				XmlElement thead = xhtml.CreateThead("タイトル / ID","作成日", "更新日");
 				table.AppendChild(thead);
 				foreach(Setting s in settingList){
 					string pName = s.ProjectName;
 					if(pName == null) pName = "(名称未設定プロジェクト)";
 
+					string fileDate = "-";
+					FileInfo dataFile = new FileInfo(s.CsvFullPath);
+					if(dataFile.Exists){
+						fileDate = string.Format("{0} ({1})", dataFile.LastWriteTime, GetFileSizeString(dataFile.Length));
+					}
 					XmlElement a = GetLink(string.Format("{0} / {1}", pName, s.Id), s.Id);
-					XmlElement tr = xhtml.CreateTr(a, s.CreatedTime);
+					XmlElement tr = xhtml.CreateTr(a, s.CreatedTime, fileDate);
 
 					table.AppendChild(tr);
 				}
@@ -210,6 +215,11 @@ namespace Bakera.Eccm{
 			form.AppendChild(ed);
 
 			return form;
+		}
+
+		private string GetFileSizeString(long size){
+			if(size < 1000) return size.ToString();
+			return String.Format("{0:n0}KB", size/1000);
 		}
 
 
