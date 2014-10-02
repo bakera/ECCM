@@ -155,6 +155,15 @@ namespace Bakera.Eccm{
 		public void LoadData(){
 			FileInfo dataFile = new FileInfo(mySetting.CsvFullPath);
 			if(!dataFile.Exists) return;
+
+			if(dataFile.Length > 50 * 1000 * 1000){
+				myMiscErrors.Add(string.Format("データファイルのサイズが約 {0:n0} MB あります。50MBを超えるファイルは扱えません。", dataFile.Length / (1000 * 1000)));
+				return;
+			}
+			if(dataFile.Length > 10 * 1000 * 1000){
+				myMiscErrors.Add(string.Format("データファイルのサイズが約 {0:n0} MB あります。50MBを超えると扱えなくなります。", dataFile.Length / (1000 * 1000)));
+			}
+
 			string tempFileName = dataFile.Name;
 			FileInfo tempFile = new FileInfo(mySetting.BaseDir.FullName + '\\' + tempFileName + CsvCacheExt);
 
@@ -534,6 +543,9 @@ namespace Bakera.Eccm{
 			// 列の数だけ読む
 			// データが無ければDBNullを格納する
 			// 最初の列はナンバリングなので、格納する列インデクスはデータインデクス+1となる
+
+			int enableDataCounter = 0;
+
 			for(int i = 1; i < this.Columns.Count; i++){
 				if(i <= datas.Length){
 					string data = datas[i-1];
@@ -541,14 +553,15 @@ namespace Bakera.Eccm{
 						row[i] = DBNull.Value;
 					} else {
 						row[i] = datas[i-1];
+						enableDataCounter++;
 					}
 				} else {
 					row[i] = DBNull.Value;
 				}
 			}
 
-			// ID が無ければスルー
-			if(row[this.PrimaryKey[0]] == DBNull.Value) return;
+			// 有効なデータがなければスルー
+			if(enableDataCounter <= 0) return;
 
 			// Path が無く AutoPathGenerate が有効の場合、Path を追加
 			if(myPathCol != null && myIdCol != null && row[myPathCol] == DBNull.Value && mySetting.AutoPathGenerate == true){
