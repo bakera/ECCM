@@ -17,6 +17,7 @@ namespace Bakera.Eccm{
 		private static int myCounter = 0; // publish件数カウンタ
 		private static int myCounterMax = 0;
 
+		public const string ParseAbortCommandName = "abort";
 
 		public new const string PathName = "allparse";
 		public new const string Name = "一括publish";
@@ -52,6 +53,8 @@ namespace Bakera.Eccm{
 				result.AppendChild(p);
 				XmlElement p2 = myXhtml.Create("p", null, string.Format("進捗: {0}件 / 全{1}件", myCounter, myCounterMax));
 				result.AppendChild(p2);
+				result.AppendChild(AbortForm());
+
 				return new HtmlResponse(myXhtml, result);
 			}
 
@@ -115,8 +118,20 @@ namespace Bakera.Eccm{
 
 
 
-		// 一括publishを実行します。
+		// Postを処理して一括publishを実行または中止します。
 		public override EcmResponse Post(HttpRequest rq){
+			if(rq.Form[ParseAbortCommandName] != null){
+				return AbortAllParse(rq);
+			}
+			return StartAllParse(rq);
+		}
+
+
+// プライベートメソッド
+
+		// 一括publishを実行します。
+		private EcmResponse StartAllParse(HttpRequest rq){
+
 			XmlNode result = myXhtml.CreateDocumentFragment();
 
 			if(myParseFlag){
@@ -157,13 +172,39 @@ namespace Bakera.Eccm{
 				p.AppendChild(tx);
 
 				result.AppendChild(p);
+
+				result.AppendChild(AbortForm());
 			}
 
 			return new HtmlResponse(myXhtml, result);
 		}
 
 
-// プライベートメソッド
+		private EcmResponse AbortAllParse(HttpRequest rq){
+			FileInfo abortCommandFile = new FileInfo(GetAbortCommandFileName());
+
+			if(abortCommandFile.Exists){
+				abortCommandFile.LastWriteTime = DateTime.Now;
+			} else {
+				 using (FileStream fs = abortCommandFile.Create()){}
+			}
+
+			XmlNode result = myXhtml.CreateDocumentFragment();
+			XmlElement p = myXhtml.P();
+			p.InnerText = "一括publish処理を中止しました。";
+
+			XmlElement a = myXhtml.Create("a");
+			a.SetAttribute("href", PathName);
+			a.InnerText = "一括publishの状態";
+			p.AppendChild(a);
+
+			XmlText tx = myXhtml.Text("画面に戻り、リロードしてみてください。");
+			p.AppendChild(tx);
+			result.AppendChild(p);
+
+			return new HtmlResponse(myXhtml, result);
+		}
+
 
 		private XmlNode EndMessage(){
 			XmlNode result = myXhtml.CreateDocumentFragment();
@@ -184,6 +225,21 @@ namespace Bakera.Eccm{
 			return result;
 		}
 
+		private XmlNode AbortForm(){
+			XmlNode result = myXhtml.CreateDocumentFragment();
+			XmlElement form = myXhtml.Form(null, "post");
+			XmlElement descP = myXhtml.P();
+			descP.InnerText = "このプロジェクトの一括publishを中止するには、「一括publish中止」ボタンを押してください。" ;
+			form.AppendChild(descP);
+			XmlElement formP = myXhtml.P();
+			XmlElement abortSubmit = myXhtml.CreateSubmit("一括publish中止");
+			abortSubmit.SetAttribute("name", ParseAbortCommandName);
+			formP.AppendChild(abortSubmit);
+			form.AppendChild(formP);
+			result.AppendChild(form);
+			return result;
+		}
+
 
 		// 一括publishを実行します。
 		private void ExecuteAllParse(){
@@ -191,10 +247,14 @@ namespace Bakera.Eccm{
 			string logFile = GetTempLogName();
 			string resultFile = GetResultLogName();
 
+			FileInfo abortCommandFile = new FileInfo(GetAbortCommandFileName());
+			DateTime startTime = DateTime.Now;
+
 			try{
 				EcmItem[] items = myProject.GetAllItems();
 				myCounter = 0;
 				myCounterMax = items.Length;
+
 				foreach(EcmItem i in  items){
 					if(i.ParsePermit == false){
 						string mes = string.Format("{0} : {1} をスキップします (publish許可条件{2}を満たしません)。\n\n", DateTime.Now, i, myProject.Setting.ParsePermissonRule);
@@ -218,26 +278,41 @@ namespace Bakera.Eccm{
 						Util.AppendWriteFile(logFile, parseEndMes);
 					}
 					Util.AppendWriteFile(logFile, string.Format("{0} : {1}\n", i, pr.Message));
+
+					// 中断コマンドが発令されていたら中止する
+					abortCommandFile.Refresh();
+					if(abortCommandFile.Exists){
+//						Util.AppendWriteFile(logFile, string.Format("{0} / {1}", abortCommandFile.LastWriteTime , startTime));
+						if(abortCommandFile.LastWriteTime > startTime){
+							Util.AppendWriteFile(logFile, myProject.Id + " : AllParse aborted");
+							return;
+						}
+					}
 				}
 				Util.AppendWriteFile(logFile, myProject.Id + " : AllParse end");
-				File.Copy(logFile, resultFile, true);
-				File.Delete(logFile);
 			} catch(Exception e) {
 				Util.AppendWriteFile(logFile, e.ToString());
+			} finally {
 				File.Copy(logFile, resultFile, true);
 				File.Delete(logFile);
-			} finally {
 				myParseFlag = false;
 			}
 		}
 
 
 		// 一括publish中に進捗を書き出すためのテンポラリログファイル名を取得します。
-		// このファイルは全プロジェクトで共通です。
 		private string GetTempLogName(){
 			string logDir = myProject.Setting.BaseDir.FullName;
 			if(!Directory.Exists(logDir)) throw new Exception("プロジェクトディレクトリが存在しません : " + logDir);
 			return logDir.TrimEnd('\\') + "\\allparse.temp";
+		}
+
+		// 一括publish中に中断コマンドを受け取るためのテンポラリログファイル名を取得します。
+		// このファイルは全プロジェクトで共通です。
+		private string GetAbortCommandFileName(){
+			string logDir = myProject.Setting.BaseDir.FullName;
+			if(!Directory.Exists(logDir)) throw new Exception("プロジェクトディレクトリが存在しません : " + logDir);
+			return logDir.TrimEnd('\\') + "\\allparseabort.txt";
 		}
 
 		// 最終的に書き出すログファイル名を取得します。
