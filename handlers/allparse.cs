@@ -55,6 +55,14 @@ namespace Bakera.Eccm{
 				result.AppendChild(p2);
 				result.AppendChild(AbortForm());
 
+				string tempLogName = GetTempLogName();
+				if(File.Exists(tempLogName)){
+					XmlElement h32 = myXhtml.H(3);
+					h32.InnerText = "åªç›Ç‹Ç≈ÇÃÉçÉO" ;
+					result.AppendChild(h32);
+					result.AppendChild(GetLogMessage(tempLogName));
+				}
+
 				return new HtmlResponse(myXhtml, result);
 			}
 
