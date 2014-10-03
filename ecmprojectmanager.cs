@@ -48,7 +48,7 @@ namespace Bakera.Eccm{
 			// データがあって、最新ならそれを返す
 			if(myProjectList.ContainsKey(projectId)){
 				EcmProject result = myProjectList[projectId];
-				if(result != null && result.FileTime != default(DateTime) && result.FileTime == result.DataTime) return result;
+				if(result != null && result.FileTime != default(DateTime) && result.FileTime <= result.DataTime) return result;
 			}
 			Setting s = GetSetting(projectId);
 			if(s == null) return null;
