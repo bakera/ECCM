@@ -54,7 +54,7 @@ namespace Bakera.Eccm{
 				XmlElement p2 = myXhtml.Create("p", null, string.Format("êiíª: {0}åè / ëS{1}åè", myCounter, myCounterMax));
 				result.AppendChild(p2);
 				result.AppendChild(AbortForm());
-
+/*
 				string tempLogName = GetTempLogName();
 				if(File.Exists(tempLogName)){
 					XmlElement h32 = myXhtml.H(3);
@@ -62,6 +62,7 @@ namespace Bakera.Eccm{
 					result.AppendChild(h32);
 					result.AppendChild(GetLogMessage(tempLogName));
 				}
+*/
 
 				return new HtmlResponse(myXhtml, result);
 			}

@@ -140,7 +140,8 @@ namespace Bakera.Eccm{
 			// グローバルテンプレートが指定されている場合はファイルが無くても生成することに注意。
 			Log.AddInfo("{0} のファイル : {1}", targetItem.Id, targetItem.FilePath);
 			if(targetItem.File.Exists){
-				// 書き込みできるかどうか確認する
+				// ファイルがある
+				// 書き込みできるかどうか (ロックされていないか) 確認する
 				try{
 					using(FileStream fs = targetItem.File.Open(FileMode.Open, FileAccess.ReadWrite, FileShare.None)){
 						fs.Close();
@@ -155,9 +156,9 @@ namespace Bakera.Eccm{
 					Log.AddError("ファイル {0} は書き込みできないようです : {1}", targetItem.FilePath, e.Message);
 					return result;
 				}
-
 				result.Result = Parse(targetItem, targetItem.File);
 			} else {
+				// ファイルがない
 				if(targetItem.Template != null){
 					Log.AddInfo("ファイル {0} はありませんが、グローバルテンプレートが指定されています(テンプレート名 : {1})。", targetItem.FilePath, targetItem.Template);
 					result.Result = Parse(targetItem, null);
