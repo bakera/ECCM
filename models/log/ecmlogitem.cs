@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace Bakera.Eccm{
 	public class EcmLogItem{
 		
-		private DateTime? myTime = null;
+		private DateTime myTime = default(DateTime);
 		private string myData = null;
 		private EcmErrorLevel myLogKind = EcmErrorLevel.Unknown;
 
@@ -20,7 +20,7 @@ namespace Bakera.Eccm{
 			set{myData = value;}
 		}
 
-		public DateTime? Time{
+		public DateTime Time{
 			get{return myTime;}
 			set{myTime = value;}
 		}
@@ -31,7 +31,7 @@ namespace Bakera.Eccm{
 		}
 
 		public override string ToString(){
-			return string.Format("[{0}]{1} : {2}", this.Kind, this.Time, this.Data);
+			return string.Format("[{0}] {1} : {2}", this.Kind, this.Time, this.Data);
 		}
 
 		

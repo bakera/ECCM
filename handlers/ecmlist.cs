@@ -361,6 +361,7 @@ namespace Bakera.Eccm{
 					logStatus.InnerText = "[" + eli.Kind.ToString() + "]";
 					logLi.InnerText = eli.Data;
 					logLi.PrependChild(logStatus);
+					logLi.PrependChild(myXhtml.Text(eli.Time.ToString("yyyy-MM-dd hh:mm:ss ffff")));
 					logUl.AppendChild(logLi);
 				}
 

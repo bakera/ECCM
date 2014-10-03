@@ -449,16 +449,16 @@ namespace Bakera.Eccm{
 		// 結果 = EcmString or EcmString[]
 		public Object Eval(Object item, string memberStr){
 			if(item is Array){
-				Log.AddInfo("{0} Eval 処理:オブジェクトは {1} です。配列ですのでイテレータ処理を行います。", Project.CurrentItem, item);
+				Log.AddInfo("{0} Eval処理: オブジェクトは {1} です。配列ですのでイテレータ処理を行います。", Project.CurrentItem, item);
 				item = EvalArray(item as Object[], memberStr);
 			} else if(item is EcmItem){
-				Log.AddInfo("{0} Eval 処理:オブジェクトは EcmItem {1} です。", Project.CurrentItem, item);
+				Log.AddInfo("{0} Eval処理: オブジェクトは EcmItem {1} です。", Project.CurrentItem, item);
 				item = EvalItem(item as EcmItem, memberStr);
 			} else if(item is EcmString){
-				Log.AddInfo("{0} Eval 処理:オブジェクトは {1} {2} です。", Project.CurrentItem, item.GetType(), item);
+				Log.AddInfo("{0} Eval処理: オブジェクトは {1} {2} です。", Project.CurrentItem, item.GetType(), item);
 				item = EvalString(item as EcmString, memberStr);
 			} else {
-				Log.AddInfo("{0} Eval 処理:オブジェクトは 文字列 {1} です。", Project.CurrentItem, item);
+				Log.AddInfo("{0} Eval処理: オブジェクトは 文字列(長さ:{1})です。", Project.CurrentItem, item.ToString().Length);
 				item = EvalString(new EcmString(item.ToString(), Project), memberStr);
 			}
 			return item;
@@ -509,7 +509,7 @@ namespace Bakera.Eccm{
 					tempExp.Parse(ei.ReadContent());
 					string expTarget = tempExp[memberStr];
 					if(expTarget != null){
-						Log.AddInfo("{0} の Export {1} を取得しました (サイズ : {2})", ei.Id, memberStr, expTarget.Length);
+						Log.AddInfo("{0} の Export {1} を取得しました (サイズ : {2})", ei.FqId, memberStr, expTarget.Length);
 						return expTarget;
 					}
 				}
