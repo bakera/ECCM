@@ -45,17 +45,44 @@ namespace Bakera.Eccm{
 
 		// 渡された ID に対応する EcmProject を取得します。
 		public EcmProject GetProject(string projectId){
-			// データがあって、最新ならそれを返す
-			if(myProjectList.ContainsKey(projectId)){
-				EcmProject result = myProjectList[projectId];
-				if(result != null && result.FileTime != default(DateTime) && result.FileTime <= result.DataTime) return result;
-			}
+
+			// プロジェクトデータのキャッシュがあり、最新ならそれを返す
+			// データファイルが最新、かつ設定が最新であればキャッシュを使用してよい
+			EcmProject result = GetProjectCache(projectId);
+			if(result != null) return result;
+
+			// キャッシュが使えない場合
 			Setting s = GetSetting(projectId);
 			if(s == null) return null;
 			EcmProject newResult = new EcmProject(this, s);
 			myProjectList[projectId] = newResult;
 			return newResult;
 		}
+
+
+		// プロジェクトデータの有効なキャッシュがあれば返します。
+		// データが最新、かつ設定が最新であればキャッシュを使用して良いと判断します。
+		// キャッシュが使用できない場合は null を返します。
+		public EcmProject GetProjectCache(string projectId){
+			// キャッシュが存在するか?
+			if(!myProjectList.ContainsKey(projectId)) return null;
+			EcmProject result = myProjectList[projectId];
+			if(result == null) return null;
+
+			// データが最新か?
+			// データファイルの更新日がデータの更新日より新しい場合はキャッシュ使用不可
+			if(result.FileTime == default(DateTime)) return null;
+			if(result.FileTime >= result.DataTime) return null;
+
+			// 設定ファイルが最新か?
+			// 設定ファイルの更新日がデータの更新日より新しい場合はキャッシュ使用不可
+			result.Setting.BaseFile.Refresh();
+			if(result.Setting.BaseFile.LastWriteTime >= result.DataTime) return null;
+			
+			
+			return result;
+		}
+
 
 		// ロードされている全ての EcmProject を取得します。
 		public EcmProject[] GetAllProject(){
