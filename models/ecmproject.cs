@@ -65,11 +65,28 @@ namespace Bakera.Eccm{
 		}
 
 		/// <summary>
+		/// 元となるデータファイルを返します。
+		/// </summary>
+		public FileInfo DataFile{
+			get; private set;
+		}
+
+		/// <summary>
+		/// データをコピーしたテンポラリファイルを返します。
+		/// </summary>
+		public FileInfo TempFile{
+			get; private set;
+		}
+
+		/// <summary>
 		/// データファイルのタイムスタンプを返します。
 		/// </summary>
 		public DateTime FileTime{
 			get{
-				if(File.Exists(this.TableName)) return File.GetLastWriteTime(this.TableName);
+				if(DataFile.Exists) {
+					DataFile.Refresh();
+					return DataFile.LastWriteTime;
+				}
 				return default(DateTime);
 			}
 		}
@@ -153,28 +170,28 @@ namespace Bakera.Eccm{
 
 		// データファイルをロードします。
 		public void LoadData(){
-			FileInfo dataFile = new FileInfo(mySetting.CsvFullPath);
-			if(!dataFile.Exists) return;
+			DataFile = new FileInfo(mySetting.CsvFullPath);
+			if(!DataFile.Exists) return;
 
-			if(dataFile.Length > 50 * 1000 * 1000){
-				myMiscErrors.Add(string.Format("データファイルのサイズが約 {0:n0} MB あります。50MBを超えるファイルは扱えません。", dataFile.Length / (1000 * 1000)));
+			if(DataFile.Length > 50 * 1000 * 1000){
+				myMiscErrors.Add(string.Format("データファイルのサイズが約 {0:n0} MB あります。50MBを超えるファイルは扱えません。", DataFile.Length / (1000 * 1000)));
 				return;
 			}
-			if(dataFile.Length > 10 * 1000 * 1000){
-				myMiscErrors.Add(string.Format("データファイルのサイズが約 {0:n0} MB あります。50MBを超えると扱えなくなります。", dataFile.Length / (1000 * 1000)));
+			if(DataFile.Length > 10 * 1000 * 1000){
+				myMiscErrors.Add(string.Format("データファイルのサイズが約 {0:n0} MB あります。50MBを超えると扱えなくなります。", DataFile.Length / (1000 * 1000)));
 			}
 
-			string tempFileName = dataFile.Name;
-			FileInfo tempFile = new FileInfo(mySetting.BaseDir.FullName + '\\' + tempFileName + CsvCacheExt);
+			string tempFileName = DataFile.Name;
+			TempFile = new FileInfo(mySetting.BaseDir.FullName + '\\' + tempFileName + CsvCacheExt);
 
 			// テンポラリが最新でなかったらコピーしてくる
-			if(!tempFile.Exists || dataFile.LastWriteTime != tempFile.LastWriteTime) DataFileCopy(dataFile, tempFile);
+			if(!TempFile.Exists || DataFile.LastWriteTime != TempFile.LastWriteTime) DataFileCopy(DataFile, TempFile);
 
 			// テンポラリファイルから内容を読む
-			if(dataFile.Extension.Equals(XmlExt, StringComparison.CurrentCultureIgnoreCase)){
-				LoadXmlData(tempFile);
+			if(DataFile.Extension.Equals(XmlExt, StringComparison.CurrentCultureIgnoreCase)){
+				LoadXmlData(TempFile);
 			} else {
-				LoadCsvData(tempFile);
+				LoadCsvData(TempFile);
 			}
 		}
 

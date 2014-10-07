@@ -113,6 +113,9 @@ namespace Bakera.Eccm{
 
 			ProcessResult result = new ProcessResult();
 
+			// プロジェクト情報をログ出力
+			Log.AddInfo("Project: {0}, FileTime:{1}, DataTime: {2}", Project.Id, Project.FileTime, Project.DataTime);
+
 			// 安全確認
 			string[] errorId = Project.GetDuplicateId();
 			if(errorId.Length > 0){
