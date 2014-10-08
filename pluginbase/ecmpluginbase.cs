@@ -55,6 +55,7 @@ namespace Bakera.Eccm{
 
 		// 文字列を「HTML エンコード」します。
 		public static string HtmlEncode(object s){
+			if(s == null) return "";
 			return HttpUtility.HtmlEncode(s.ToString());
 		}
 
@@ -70,7 +71,7 @@ namespace Bakera.Eccm{
 
 		// 文字列を「HTML エンコード」した上で引用符で括ります。
 		public static string QuoteAttribute(object s){
-			return '"' + HttpUtility.HtmlEncode(s.ToString()) + '"';
+			return '"' + HtmlEncode(s) + '"';
 		}
 
 
