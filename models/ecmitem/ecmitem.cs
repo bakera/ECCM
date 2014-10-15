@@ -326,6 +326,16 @@ namespace Bakera.Eccm{
 			return result;
 		}
 
+		// 任意の名前のExport領域を取得します。
+		// ファイルがない場合、街頭の領域がない場合は null を返します。
+		public string GetExport(Parser p, string exportName){
+			if(!File.Exists) return null;
+			ExportManager tempExp = new ExportManager(p, this);
+			tempExp.Parse(this.ReadContent());
+			string expTarget = tempExp[exportName];
+			return expTarget;
+		}
+
 
 		// リンクテキストとhref属性の値を指定してアンカーを取得します。
 		public string GetAnchorByTextAndHref(string innerText, string href){

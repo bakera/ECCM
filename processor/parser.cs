@@ -95,6 +95,7 @@ namespace Bakera.Eccm{
 						Log.AddAlert("グローバルテンプレートのデータが取得できませんでした。ファイルが見つかりません。: {0}", template.File.FullName);
 						return null;
 					}
+					Log.AddInfo("グローバルテンプレートのデータを取得しました。ファイル : {0}, サイズ: {1}", template.File.FullName, template.File.Length);
 					result = GeneralParse(template.GetData());
 				}
 				Log.AddInfo("{0} パース完了", targetItem);
@@ -142,6 +143,7 @@ namespace Bakera.Eccm{
 			// ファイルがあるか?
 			// グローバルテンプレートが指定されている場合はファイルが無くても生成することに注意。
 			Log.AddInfo("{0} のファイル : {1}", targetItem.Id, targetItem.FilePath);
+			targetItem.File.Refresh();
 			if(targetItem.File.Exists){
 				// ファイルがある
 				// 書き込みできるかどうか (ロックされていないか) 確認する
@@ -149,7 +151,7 @@ namespace Bakera.Eccm{
 					using(FileStream fs = targetItem.File.Open(FileMode.Open, FileAccess.ReadWrite, FileShare.None)){
 						fs.Close();
 					}
-					Log.AddInfo("ファイル {0} は書き込み可能なようです。", targetItem.FilePath);
+					Log.AddInfo("ファイル {0} は存在しますが、書き込み可能なようです。", targetItem.FilePath);
 				} catch(IOException e){
 					result.AddError("ファイル {0} は書き込みできないようです : {1}", targetItem.FilePath, e.Message);
 					Log.AddError("ファイル {0} は書き込みできないようです : {1}", targetItem.FilePath, e.Message);
@@ -255,7 +257,8 @@ namespace Bakera.Eccm{
 		}
 
 		// テンプレート・エクスポート・プロパティをパース
-		private string GeneralParse(string data){
+		// プラグインから呼べるようにpublic
+		public string GeneralParse(string data){
 			bool commentDelete = false;
 			if(Setting.TemplateCommentDelete == true) commentDelete = true;
 			return GeneralParse(data, commentDelete);
@@ -507,15 +510,11 @@ namespace Bakera.Eccm{
 				p = typeof(EcmItem).GetProperty(memberName);
 				if(p != null) return p.GetValue(ei, null);
 
-				// ファイルがあれば Exportにあたる (その場で Parse する)
-				if(ei.File.Exists){
-					ExportManager tempExp = new ExportManager(this, ei);
-					tempExp.Parse(ei.ReadContent());
-					string expTarget = tempExp[memberStr];
-					if(expTarget != null){
-						Log.AddInfo("{0} の Export {1} を取得しました (サイズ : {2})", ei.FqId, memberStr, expTarget.Length);
-						return expTarget;
-					}
+				// Exportにあたる (その場で Parse する)
+				string expTarget = ei.GetExport(this, memberStr);
+				if(expTarget != null){
+					Log.AddInfo("{0} の Export {1} を取得しました (サイズ : {2})", ei.FqId, memberStr, expTarget.Length);
+					return expTarget;
 				}
 
 				// みつからない
