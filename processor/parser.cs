@@ -514,7 +514,7 @@ namespace Bakera.Eccm{
 				string expTarget = ei.GetExport(this, memberStr);
 				if(expTarget != null){
 					Log.AddInfo("{0} ‚Ì Export {1} ‚ðŽæ“¾‚µ‚Ü‚µ‚½ (ƒTƒCƒY : {2})", ei.FqId, memberStr, expTarget.Length);
-					return expTarget;
+					return GeneralParse(expTarget);
 				}
 
 				// ‚Ý‚Â‚©‚ç‚È‚¢
