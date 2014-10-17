@@ -72,6 +72,7 @@ namespace Bakera.Eccm{
 				result.AppendChild(ViewPluginType());
 				result.AppendChild(ViewPlugins());
 				result.AppendChild(ViewFiles());
+				result.AppendChild(ViewCompilerState());
 				result.AppendChild(ViewTestFiles());
 			}
 			return result;
@@ -113,6 +114,18 @@ namespace Bakera.Eccm{
 				XmlElement p = myXhtml.P("note", "プラグインはありません。");
 				result.AppendChild(p);
 			}
+			return result;
+		}
+
+		// コンパイル済みプラグインの情報を表示します。
+		private XmlNode ViewCompilerState(){
+			XmlDocumentFragment result = myXhtml.CreateDocumentFragment();
+			XmlElement h2 = myXhtml.H(2, null, "コンパイラの参照アセンブリ");
+			result.AppendChild(h2);
+			foreach(string s in myCompiler.CurrentReferenceAsmNames){
+				result.AppendChild(myXhtml.P(null, s));
+			}
+
 			return result;
 		}
 
@@ -239,7 +252,6 @@ namespace Bakera.Eccm{
 			} else {
 				result.AppendChild(myXhtml.H(2, null, "コンパイルエラー"));
 				result.AppendChild(myXhtml.P(null, "プラグインのコンパイルに失敗しました。"));
-				
 			}
 			if(cr.Errors.HasErrors){
 				foreach(CompilerError ce in cr.Errors){

@@ -41,13 +41,20 @@ function {1}(param : EcmPluginParams){{super(param)}}
 		public Compiler(){
 			myCurrentAsm = Assembly.GetAssembly(typeof(Eccm));
 			AssemblyName[] refAsmNames = myCurrentAsm.GetReferencedAssemblies();
-			myCurrentReferenceAsmNames = new string[refAsmNames.Length+1];
+			var tempCurrentReferenceAsmNames = new List<string>();
 			for(int i=0; i < refAsmNames.Length; i++){
 				try{
-					myCurrentReferenceAsmNames[i] = Assembly.Load(refAsmNames[i]).Location;
+					string asmLocation = Assembly.Load(refAsmNames[i]).Location;
+					
+					// 以下のようなエラーが出る環境があるので corlib を取り除く
+					// error CS1703: 同じ ID 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' のアセンブリが既にインポートされています。重複している参照の一方を削除してください。
+					if(asmLocation.EndsWith("mscorlib.dll")) continue;
+					tempCurrentReferenceAsmNames.Add(asmLocation);
 				} catch(FileNotFoundException){}
 			}
-			myCurrentReferenceAsmNames[refAsmNames.Length] = myCurrentAsm.Location;
+			tempCurrentReferenceAsmNames.Add(myCurrentAsm.Location);
+			myCurrentReferenceAsmNames = tempCurrentReferenceAsmNames.ToArray();
+
 		}
 
 
