@@ -326,16 +326,6 @@ namespace Bakera.Eccm{
 			return result;
 		}
 
-		// 任意の名前のExport領域を取得します。
-		// ファイルがない場合、該当の領域がない場合は null を返します。
-		public string GetExport(Parser p, string exportName){
-			if(!File.Exists) return null;
-			ExportManager tempExp = new ExportManager(p, this);
-			tempExp.Parse(this.ReadContent());
-			string expTarget = tempExp[exportName];
-			return expTarget;
-		}
-
 
 		// リンクテキストとhref属性の値を指定してアンカーを取得します。
 		public string GetAnchorByTextAndHref(string innerText, string href){
@@ -377,20 +367,6 @@ namespace Bakera.Eccm{
 		// 絶対URLにリンクするアンカーを取得します。
 		public string GetAbsUrlAnchor(){
 			return GetAbsUrlAnchorByName(ReservedTitleName);
-		}
-
-
-		// 第一引数のデータがあれば第二引数の文字列を返します。
-		public string IfExist(string s){
-			string[] replaceParams = s.Split(',');
-			if(replaceParams.Length < 1) return null;
-			return IfExist(replaceParams[0], replaceParams[1]);
-		}
-
-		// 第一引数のデータがあれば第二引数の文字列を返します。
-		public string IfExist(string colName, string data){
-			if(string.IsNullOrEmpty(this[colName])) return null;
-			return data;
 		}
 
 
