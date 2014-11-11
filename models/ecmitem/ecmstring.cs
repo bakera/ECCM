@@ -124,14 +124,14 @@ namespace Bakera.Eccm{
 		}
 
 
+		// 与えられた文字列をそのまま返します。
+		public string Str(string s){
+			return s;
+		}
 
 
 // 静的メソッド
 
-		// 与えられた文字列をそのまま返します。
-		public static string Str(string s){
-			return s;
-		}
 
 		// FileInfo を名前でソートするための比較メソッドです。
 		public static int CompareFileInfoByName(FileInfo x, FileInfo y){
