@@ -291,7 +291,7 @@ namespace Bakera.Eccm{
 
 		// テンプレートのパース
 		private string TemplateParse(MarkedData md, bool commentDelete){
-			Log.AddInfo("{0} テンプレートを認知 : {1} / commentDelete = {2}", Project.CurrentItem, md.MarkName, commentDelete);
+			Log.AddInfo("{0} テンプレートを認知 : {1} / commentDelete = {2}", Project.CurrentItem, md.StartMark, commentDelete);
 			string result = md.FrontData;
 			result += InnerTemplateParse(md, md.MarkName, commentDelete);
 
@@ -367,7 +367,7 @@ namespace Bakera.Eccm{
 
 		// エクスポートのパース
 		private string ExportParse(MarkedData md, bool commentDelete){
-			Log.AddInfo("{0} エクスポートを認知 : {1}", Project.CurrentItem, md.MarkName);
+			Log.AddInfo("{0} エクスポートを認知 : {1}", Project.CurrentItem, md.StartMark);
 
 			string result = md.FrontData + md.StartMark;
 			// エクスポートを書き戻す
@@ -376,7 +376,7 @@ namespace Bakera.Eccm{
 				Log.AddWarning("{0} エクスポートされた内容がありませんでした : {1}", Project.CurrentItem, md.MarkName);
 				result += GeneralParse(md.InnerData, false);
 			} else {
-				Log.AddInfo("{0} エクスポート内容を処理 : {1}", Project.CurrentItem, md.MarkName);
+				Log.AddInfo("{0} エクスポート内容を処理 : {1} (データサイズ: {2})", Project.CurrentItem, md.MarkName, exportData.Length);
 				result += GeneralParse(exportData, false);
 			}
 			result += md.EndMark;
@@ -397,6 +397,7 @@ namespace Bakera.Eccm{
 
 			// プロパティデータ取得ターゲットを取得
 			EcmItem targetItem = Project.GetItem(md.PropertyIdName);
+			targetItem.Parser = this;
 
 			// ターゲットが見つからなければ処理しない
 			if(targetItem == null){
@@ -466,7 +467,9 @@ namespace Bakera.Eccm{
 				item = EvalString(item as EcmString, memberStr);
 			} else {
 				Log.AddInfo("{0} Eval処理: オブジェクトは 文字列(長さ:{1})です。", Project.CurrentItem, item.ToString().Length);
-				item = EvalString(new EcmString(item.ToString(), Project), memberStr);
+				EcmString newStr = new EcmString(item.ToString(), Project);
+				newStr.Parser = this;
+				item = EvalString(newStr, memberStr);
 			}
 			return item;
 		}
@@ -504,17 +507,23 @@ namespace Bakera.Eccm{
 				PropertyInfo p;
 
 				// インデクサにあたる。
-				if(ei[memberName] != null) return ei[memberName];
+				if(ei[memberName] != null){
+					Log.AddInfo("{0} のデータ {1} を取得しました (サイズ : {2})", ei.FqId, memberStr, ei[memberName].Length);
+					return ei[memberName];
+				}
 
 				// EcmItem のデフォルトプロパティにあたる
 				p = typeof(EcmItem).GetProperty(memberName);
-				if(p != null) return p.GetValue(ei, null);
+				if(p != null){
+					Log.AddInfo("{0} のデフォルトプロパティ {1} を取得します。", ei.FqId, memberStr);
+					return p.GetValue(ei, null);
+				}
 
-				// Exportにあたる (その場で Parse する)
+				// Exportにあたる (Parse しないで返す)
 				string expTarget = ei.GetExport(this, memberStr);
 				if(expTarget != null){
 					Log.AddInfo("{0} の Export {1} を取得しました (サイズ : {2})", ei.FqId, memberStr, expTarget.Length);
-					return GeneralParse(expTarget);
+					return expTarget;
 				}
 
 				// みつからない

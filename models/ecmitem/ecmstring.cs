@@ -6,6 +6,9 @@ using System.Web;
 
 
 namespace Bakera.Eccm{
+
+
+	// EcmItemなどの基底クラス
 	public class EcmString{
 
 		protected string myId = null;
@@ -24,6 +27,11 @@ namespace Bakera.Eccm{
 
 
 // public プロパティ
+
+		// 処理中のParserを取得します。
+		public Parser Parser{
+			get; set;
+		}
 
 		// 親の EcmProject を取得します。
 		public EcmProject Project{
@@ -47,7 +55,6 @@ namespace Bakera.Eccm{
 				return Util.CutRight(myId, Project.Setting.IndexLinkSuffix);
 			}
 		}
-
 
 
 // public メソッド
@@ -98,6 +105,25 @@ namespace Bakera.Eccm{
 		public string UrlEncode(string s){
 			return System.Web.HttpUtility.UrlEncode(s);
 		}
+
+		// Parserが存在するとき、このテキストをParseします。
+		public string Parse(){
+			return Parse(myId);
+		}
+
+		// Parserが存在するとき、渡されたテキストをParseします。
+		public string Parse(string data){
+			return Parser.GeneralParse(data);
+		}
+
+
+		// Parserが存在するとき、テンプレートを適用します。
+		public string ApplyTemplate(string templateName){
+			string mark = string.Format("<!--={0}/-->", templateName);
+			return Parse(mark);
+		}
+
+
 
 
 // 静的メソッド

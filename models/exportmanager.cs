@@ -27,6 +27,7 @@ namespace Bakera.Eccm{
 
 // インデクサ
 		// その名前の値を取り出す
+		// 副作用あり
 		public string this[string dataname]{
 			get{
 				ExportObject eo = myTable[dataname] as ExportObject;
@@ -68,11 +69,11 @@ namespace Bakera.Eccm{
 				// テーブルに追加
 				if(myTable[exportName] == null){
 					myTable[exportName] = new ExportObject(exported);
-					myParser.Log.AddInfo("{0} エクスポート {1} の内容を記憶しました。(データサイズ : {2})", myItem, exportName, exported.Length);
+					myParser.Log.AddInfo("{0} エクスポート {1} の内容を記憶しました。(データサイズ : {2})", myItem.FqId, exportName, exported.Length);
 				} else {
 					ExportObject eo = myTable[exportName] as ExportObject;
 					eo.Add(exported);
-					myParser.Log.AddInfo("{0} エクスポート {1} の内容を追加で記憶しました。({2}件目、データサイズ : {3})", myItem, exportName, eo.Count, exported.Length);
+					myParser.Log.AddInfo("{0} エクスポート {1} の内容を追加で記憶しました。({2}件目、データサイズ : {3})", myItem.FqId, exportName, eo.Count, exported.Length);
 				}
 
 				// 入れ子のエクスポートを捜索
