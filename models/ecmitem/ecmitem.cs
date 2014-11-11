@@ -307,8 +307,13 @@ namespace Bakera.Eccm{
 
 		// 任意の名前のデータを取得します。
 		public string GetData(string colName){
-			if(Project.Columns.IndexOf(colName) >= 0) return myRow[colName] as string;
-			return null;
+			// 列がなければnull
+			if(Project.Columns.IndexOf(colName) < 0) return null;
+
+			// 列があるときは少なくとも空文字列を返す
+			string result = myRow[colName] as string;
+			if(result == null) result = "";
+			return result;
 		}
 
 		// 任意の名前の予約名データを取得します。
