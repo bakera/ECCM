@@ -380,20 +380,11 @@ namespace Bakera.Eccm{
 		}
 
 
-		// 第一引数のデータがあれば第二引数の文字列を返します。
-		public string IfExist(string s){
-			string[] replaceParams = s.Split(',');
-			if(replaceParams.Length < 1) return null;
-			return IfExist(replaceParams[0], replaceParams[1]);
-		}
-
-		// 第一引数のデータがあれば第二引数の文字列を返します。
-		public string IfExist(string colName, string data){
+		// 渡された名前のデータが存在すれば自身を、存在しなければnullを返します。
+		public EcmItem IfExist(string colName){
 			if(string.IsNullOrEmpty(this[colName])) return null;
-			return data;
+			return this;
 		}
-
-
 
 
 		// リンクテキストを指定して、ナビ用リンクのli要素を取得します。
