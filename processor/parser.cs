@@ -501,36 +501,36 @@ namespace Bakera.Eccm{
 				}
 				// みつからない
 				Log.AddWarning("メソッドが見つかりませんでした : {0}.{1}", ei, memberStr);
-			} else {
-				// プロパティ
-				Log.AddInfo("{0} プロパティ {1} を認知", Project.CurrentItem, memberStr);
-				PropertyInfo p;
-
-				// インデクサにあたる。
-				if(ei[memberName] != null){
-					Log.AddInfo("{0} のデータ {1} を取得しました (サイズ : {2})", ei.FqId, memberStr, ei[memberName].Length);
-					return ei[memberName];
-				}
-
-				// EcmItem のデフォルトプロパティにあたる
-				p = typeof(EcmItem).GetProperty(memberName);
-				if(p != null){
-					Log.AddInfo("{0} のデフォルトプロパティ {1} を取得します。", ei.FqId, memberStr);
-					return p.GetValue(ei, null);
-				}
-
-				// Exportにあたる (Parse しないで返す)
-				string expTarget = ei.GetExport(this, memberStr);
-				if(expTarget != null){
-					Log.AddInfo("{0} の Export {1} を取得しました (サイズ : {2})", ei.FqId, memberStr, expTarget.Length);
-					return expTarget;
-				}
-
-				// みつからない
-				Log.AddWarning("プロパティが見つかりませんでした : {0}.{1}", ei, memberStr);
 				return null;
 			}
-			return ei;
+
+			// プロパティ
+			Log.AddInfo("{0} プロパティ {1} を認知", Project.CurrentItem, memberStr);
+			PropertyInfo p;
+
+			// インデクサにあたる。
+			if(ei[memberName] != null){
+				Log.AddInfo("{0} のデータ {1} を取得しました (サイズ : {2})", ei.FqId, memberStr, ei[memberName].Length);
+				return ei[memberName];
+			}
+
+			// EcmItem のデフォルトプロパティにあたる
+			p = typeof(EcmItem).GetProperty(memberName);
+			if(p != null){
+				Log.AddInfo("{0} のデフォルトプロパティ {1} を取得します。", ei.FqId, memberStr);
+				return p.GetValue(ei, null);
+			}
+
+			// Exportにあたる (Parse しないで返す)
+			string expTarget = ei.GetExport(this, memberStr);
+			if(expTarget != null){
+				Log.AddInfo("{0} の Export {1} を取得しました (サイズ : {2})", ei.FqId, memberStr, expTarget.Length);
+				return expTarget;
+			}
+
+			// みつからない
+			Log.AddWarning("プロパティが見つかりませんでした : {0}.{1}", ei, memberStr);
+			return null;
 		}
 
 		// EcmString とその派生クラスに対して Eval 処理を実行します。
