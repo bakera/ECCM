@@ -51,6 +51,9 @@ namespace Bakera.Eccm{
 					result.AppendChild(myXhtml.P(null, "データが設定されていません。CSV データの内容を確認してください。"));
 				}
 
+
+
+
 				// CSV へのリンク
 				if(!string.IsNullOrEmpty(myProject.Setting.CsvLinkPath)){
 					string hrefValue = myProject.Setting.CsvLinkPath;
@@ -68,7 +71,7 @@ namespace Bakera.Eccm{
 
 				// ソートパラメータ取得
 				// ちなみに URL デコード済みで返ってくる
-				string sortStr = rq.Params["sort"];
+				string sortStr = rq.Params[SortInputLabel];
 				if(!string.IsNullOrEmpty(sortStr) && myProject.Columns[sortStr] != null){
 					mySortColumn = sortStr;
 				} else if(!string.IsNullOrEmpty(myProject.Setting.DefaultSortColumn)){
