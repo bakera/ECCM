@@ -31,6 +31,14 @@ namespace Bakera.Eccm{
 			XmlDocumentFragment result = myXhtml.CreateDocumentFragment();
 
 			DirectoryInfo dir = myProject.Setting.DocumentFullPath;
+
+			if(dir == null){
+				return ShowError("myProject.Setting.DocumentFullPathの値が取得できませんでした。");
+			}
+			if(!dir.Exists){
+				return ShowError("ディレクトリがみつかりません: {0}", dir.FullName);
+			}
+
 			List<string> files = GetFilesFromDir(dir);
 
 			XmlElement p = myXhtml.Create("p");
@@ -39,7 +47,7 @@ namespace Bakera.Eccm{
 
 			EcmItem[] allItem = myProject.GetAllItems();
 			foreach(EcmItem ei in allItem){
-				files.Remove(ei.File.FullName);
+				if(ei.File != null) files.Remove(ei.File.FullName);
 			}
 
 			XmlElement p2 = myXhtml.Create("p");
@@ -53,6 +61,7 @@ namespace Bakera.Eccm{
 				ul.AppendChild(li);
 			}
 			result.AppendChild(ul);
+
 
 			return new HtmlResponse(myXhtml, result);
 		}
