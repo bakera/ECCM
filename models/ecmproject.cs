@@ -83,7 +83,7 @@ namespace Bakera.Eccm{
 		/// </summary>
 		public DateTime FileTime{
 			get{
-				if(DataFile.Exists) {
+				if(DataFile != null && DataFile.Exists) {
 					DataFile.Refresh();
 					return DataFile.LastWriteTime;
 				}
